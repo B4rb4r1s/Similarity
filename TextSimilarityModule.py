@@ -1,5 +1,6 @@
 import config
 
+import math
 import time
 import torch
 from transformers import AutoTokenizer, AutoModel
@@ -100,6 +101,9 @@ class BaseSimilarity():
 
     def calculate_similarity(self, embedding_1, embedding_2):
         return cosine_similarity([embedding_1], [embedding_2])[0][0]
+
+    def calculate_similarity_acos(self, embedding_1, embedding_2):
+        return math.acos(cosine_similarity([embedding_1], [embedding_2])[0][0])
 
 
 def token_size(text):

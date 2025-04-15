@@ -19,23 +19,29 @@ def compare():
 
     handlers = [BaseSimilarity(i) for i in config.SIMILARITY_MODELS]
 
-    similatiries = []
+    similarities = []
     for handler in handlers:
         emb1 = handler.get_full_text_embeddings(text_1)
 
-        text_similatiries = []
+        text_similarities = []
         for text_2 in texts_2:
             if text_2:
                 emb2 = handler.get_full_text_embeddings(text_2)
-                text_similatiries.append([handler.column, str(handler.calculate_similarity(emb1, emb2))])
+                text_similarities.append([handler.column, str(handler.calculate_similarity(emb1, emb2)), str(handler.calculate_similarity_acos(emb1, emb2))])
             else:
-                text_similatiries.append([handler.column, str(0)])
+                text_similarities.append([handler.column, str(0)])
 
-        
-        similatiries.append(text_similatiries)
+        similarities.append(text_similarities)
+
+    compression = []
+    for text_2 in texts_2:
+        if text_2:
+            compression.append(len(text_2)/len(text_1))
+        else:
+            compression.append(None)
 
 
-    return jsonify({'similatiries': similatiries})
+    return jsonify({'similarities': similarities, 'compression': compression})
 
 
 
