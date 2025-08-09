@@ -47,7 +47,21 @@ class DatabaseHandler:
                 FROM elibrary_dataset
                 LEFT JOIN elibrary_dataset_summaries
                     ON elibrary_dataset_summaries.doc_id = elibrary_dataset.id
-                ORDER BY elibrary_dataset.id DESC;
+                ORDER BY elibrary_dataset.id DESC
+                LIMIT 480;
+            ''')
+            dataset = cursor.fetchall()
+        return dataset
+    # lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+    def get_db_table_text_real_summaries(self):
+        with self.connection.cursor() as cursor:
+            cursor.execute(f'''
+                SELECT elibrary_dataset.id, target_summary, elibrary_dataset_summaries.doc_id, text_dedoc, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+                FROM elibrary_dataset
+                LEFT JOIN elibrary_dataset_summaries
+                    ON elibrary_dataset_summaries.doc_id = elibrary_dataset.id
+                ORDER BY elibrary_dataset.id DESC
+                LIMIT 480;
             ''')
             dataset = cursor.fetchall()
         return dataset

@@ -9,9 +9,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class BaseSimilarity():
-    def __init__(self, model_path, device='cuda:1'):
+    def __init__(self, model_path, device='cuda:0'):
         self.model_path = model_path
-        self.device = device or "cuda:1" if torch.cuda.is_available() else "cpu"
+        self.device = device # or "cuda:1" if torch.cuda.is_available() else "cpu"
         self.tokenizer = None
         self.model = None
 
@@ -66,7 +66,7 @@ class BaseSimilarity():
 
 
     def get_full_text_embeddings(self, text):
-        self.logger(f'Model: {self.column}\n', 0)
+        # self.logger(f'Model: {self.column}\n', 0)
 
         full_tokens = self.tokenizer.encode(text)
         self.logger(f'Text: {len(full_tokens)} tokens, ', 1)
