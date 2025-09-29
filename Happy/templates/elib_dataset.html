@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База данных документов</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/> 
+</head>
+<body>
+    <div class="container">
+
+        <div class="topper">
+            <h1>База данных документов eLibrary</h1>
+            <p>Всего документов в базе данных: {{ count }}</p>
+        </div>
+
+        <form action="{{ url_for('elib_dataset') }}" method="POST">
+            <input type="text" name="query" id="query" placeholder="Поиск...">
+            <button type="submit" class="upload-button">Поиск</button>
+        </form>
+
+        <div>
+            <a href="{{ url_for('index') }}" class="button">Главная</a>
+        </div>
+
+        <div class="elib-documents">
+            <form method="POST" action="{{ url_for('delete_elib_documents') }}">
+                <div style="position: sticky; top: 0;"><button type="submit" class="button">Удалить выбранные документы</button></div>
+                <table class="elib-document-table" id="elib-documents-table">
+                    <thead>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th class="select-column"></th>
+                            <th class="id-column">ID</th>
+                            <th class="file-name-column">Название файла</th>
+                            <th>Начало документа</th>
+                            <th>Секция</th>
+                        </tr>
+                        {% for doc in dataset %}
+                            <tr>
+                                <td><input type="checkbox" name="document_ids" value="{{ doc[0] }}"></td>
+                                <td>{{ doc[0] }}</td>
+                                <td class="file-name-column">
+                                    <a href="{{ url_for('elib_dataset_document', doc_id=doc[0]) }}">{{ doc[1] }}</a>
+                                </td>
+                                <td class="text-head">{{ doc[2][:65] }} ...</td>
+                                <td class="tag-column">{{ doc[3] }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="center">База данных пуста</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    
+    <script>
+    $(document).ready(function () {
+        $('#elib-documents-table').DataTable({
+            "pageLength": 50, // Количество записей на странице
+            "lengthMenu": [[50, 100, -1], [50, 100, "Все"]],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/Russian.json"
+            }
+        });
+    });
+    </script>
+</body>
+</html>

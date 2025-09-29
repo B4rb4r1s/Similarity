@@ -1,0 +1,18 @@
+# .dockerignore
+
+__pycache__
+
+Source/__pycache__
+Source/Models/**
+Source/Models_all/**
+!Source/Models/MBART/**
+Source/support.ipynb
+
+pgdata
+happy_pgdata
+
+Data
+uploads
+Uploads
+
+happy.rar

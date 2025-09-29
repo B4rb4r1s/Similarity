@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База данных документов</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/> 
+</head>
+<body>
+    <h1>База данных документов</h1>
+
+    {% if dataset|length > 0 %}
+        <p>{{ dataset|length }}/11608 записей</br>
+            ({{ dataset|length / 11608 *100}} %)</p>
+    {% endif %}
+
+    <div>
+        <a href="{{ url_for('index') }}" class="nav-button">Главная</a>
+    </div>
+    <p>Всего документов в базе данных: {{ count }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>ID</th>
+                <th>Название файла</th>
+                <th>Мероприятие</th>
+                <th>Формат</th>
+                <th>Начало документа</th>
+            </tr>
+        </thead>
+        <!-- 
+            doc[0] = doc_dataset.id,
+            doc[1] = file_name,
+            doc[2] = event,
+            doc[3] = format,
+            doc[4] = full_text_tesseract,
+            doc[6] = full_text_dedoc 
+        -->
+        <tbody>
+            {% for doc in dataset %}
+                <tr>
+                    <td><input type="checkbox" name="document_ids" value="{{ doc[0] }}"></td>
+                    <td>{{ doc[0] }}</td>
+                    <td>
+                        <a href="{{ url_for('dataset_document', doc_id=doc[0]) }}">{{ doc[1] }}</a>
+                    </td>
+                    <td>{{ doc[2] }}</td>
+                    <td>{{ doc[3] }}</td>
+                    {% if doc[5] %}
+                        <td>{{ doc[5][:26] }}</td>
+                    {% elif doc[4] %}
+                        <td>{{ doc[4][:26] }}</td>
+                    {% endif %}
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="center">База данных пуста</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

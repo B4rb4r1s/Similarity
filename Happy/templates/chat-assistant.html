@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-асистент</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <div id="chat-output"></div>
+        </div>
+        <input type="text" id="user-input" placeholder="Введите сообщение...">
+        <button id="send-button">Отправить</button>
+    </div>
+    <script>
+        const sendButton = document.getElementById('send-button');
+        const userInput = document.getElementById('user-input');
+        const chatOutput = document.getElementById('chat-output');
+
+        sendButton.addEventListener('click', async () => {
+            const message = userInput.value;
+            if (message.trim() === '') return;
+
+            // Отображение сообщения пользователя
+            chatOutput.innerHTML += `<div class="user-message">${message}</div>`;
+            userInput.value = '';
+
+            // Отправка сообщения на сервер
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message }),
+            });
+            const data = await response.json();
+
+            // Отображение ответа бота
+            chatOutput.innerHTML += `<div class="bot-response">${data.response}</div>`;
+        });
+    </script>
+</body>
+</html>

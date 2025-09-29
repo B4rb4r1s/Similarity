@@ -1,0 +1,154 @@
+# version: "3"
+services:
+
+  app:
+    image: happy:dedoc
+    container_name: happy_container
+    ports:
+      - "0.0.0.0:5052:5000"
+    depends_on:
+      - postgre
+      - similarity
+    volumes:
+      - .:/app
+      - ..:/app/prj
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    command: ['python', 'app.py']
+
+
+  postgre:
+    image: happy_db
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: happy_user
+      POSTGRES_PASSWORD: happy
+      POSTGRES_DB: happy_db
+    ports:
+      - "0.0.0.0:5533:5432"
+    volumes:
+      - ./happy_pgdata:/var/lib/postgresql/data
+
+
+  loader:
+    image: happy:dedoc
+    container_name: happy_loader_container
+    depends_on:
+      - postgre
+    volumes:
+      - ..:/app
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    # command: tail -F /dev/null
+    # command: ['python', './NER_System/run.py']
+    # command: ["python", './DocumentAnalysisSystem/Utility/Loader/run_loader.py']
+    command: ["python", './Happy/Utility/Loader/run_loader.py']
+
+
+  corrector:
+    image: happy_corrector
+    container_name: happy_spell_checker_container
+    depends_on:
+      - postgre
+    volumes:
+      - ..:/task
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # command: tail -F /dev/null
+    command: ["python", './DocumentAnalysisSystem/Utility/Corrector/run_corrector.py']
+
+
+  summarizer:
+    image: happy:dedoc
+    container_name: happy_summarizer_container
+    depends_on:
+      - postgre
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # command: tail -F /dev/null
+    # command: ["python", './DocumentAnalysisSystem/Utility/Summarizer/run_summarizer.py']
+    command: ["python", './Source/Summarizer/run_summarizer.py']
+
+
+  similarity:
+    image: happy_simularity
+    # image: happy:dedoc
+    container_name: happy_similarity_container
+    depends_on:
+      - postgre
+    volumes:
+      - ../Similarity:/app
+    ports:
+      - "0.0.0.0:5053:5001"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # command: tail -F /dev/null
+    command: ["python", "FlaskHandler.py"]
+
+  similarity_task:
+    image: happy_simularity
+    # image: happy:dedoc
+    container_name: happy_similarity_container_handler
+    depends_on:
+      - postgre
+    volumes:
+      - ../Similarity:/app
+    ports:
+      - "0.0.0.0:5053:5001"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # command: tail -F /dev/null
+    # command: ["python", "FlaskHandler.py"]
+    command: ["python", "run_similarity.py"]
+
+
+
+  # ocr:
+  #   image: olm_ocr
+  #   container_name: ocr_container
+  #   volumes:
+  #     - ..:/ocr
+  #   command: tail -F /dev/null
+
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  default:
+    name: postgre-service_default
+
+  app-network:
