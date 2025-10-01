@@ -43,10 +43,10 @@ class DatabaseHandler:
     def get_db_table_text_summaries(self):
         with self.connection.cursor() as cursor:
             cursor.execute(f'''
-                SELECT elibrary_dataset.id, text_dedoc, elibrary_dataset_summaries.doc_id, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+                SELECT elibrary_dataset.id, text_dedoc, similarity_metrics.doc_id, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
                 FROM elibrary_dataset
-                LEFT JOIN elibrary_dataset_summaries
-                    ON elibrary_dataset_summaries.doc_id = elibrary_dataset.id
+                LEFT JOIN similarity_metrics
+                    ON similarity_metrics.doc_id = elibrary_dataset.id
                 ORDER BY elibrary_dataset.id DESC
                 LIMIT 480;
             ''')
@@ -56,10 +56,10 @@ class DatabaseHandler:
     def get_db_table_text_real_summaries(self):
         with self.connection.cursor() as cursor:
             cursor.execute(f'''
-                SELECT elibrary_dataset.id, target_summary, elibrary_dataset_summaries.doc_id, text_dedoc, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+                SELECT elibrary_dataset.id, target_summary, similarity_metrics.doc_id, text_dedoc, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
                 FROM elibrary_dataset
-                LEFT JOIN elibrary_dataset_summaries
-                    ON elibrary_dataset_summaries.doc_id = elibrary_dataset.id
+                LEFT JOIN similarity_metrics
+                    ON similarity_metrics.doc_id = elibrary_dataset.id
                 ORDER BY elibrary_dataset.id DESC
                 LIMIT 480;
             ''')
@@ -101,7 +101,7 @@ class DatabaseHandler:
 if __name__ == '__main__':
     db = DatabaseHandler('docker')
     db.get_db_connection()
-    table = db.get_db_table('elibrary_dataset_summaries', 'lingvo_summary')
+    table = db.get_db_table('similarity_metrics', 'lingvo_summary')
     print(table[:2])
     table = db.get_db_table('elibrary_dataset_spell', 'sage_m2m100')
     print(table[:2])
