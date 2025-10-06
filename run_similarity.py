@@ -32,47 +32,96 @@ from DBHandler import DatabaseHandler
 #             with open('simm-logs.txt', 'a') as f:
 #                 f.write(f'Text {i}: {handler.column}: {text_similarities}\n')
 
+def run_source_target():
+    db_handler = DatabaseHandler(host='docker')
+    dataset = db_handler.get_db_table_text_summaries_from_source()
+    handlers = [BaseSimilarity(i) for i in config.SIMILARITY_MODELS]
+
+    for row in dataset:
+        doc_id = row[0]
+        text_1 = row[1]
+        text_2 = row[2]
+
+        similarity_values = {}
+        for handler in handlers:
+            emb1 = handler.get_full_text_embeddings(text_1)
+            emb2 = handler.get_full_text_embeddings(text_2)
+            sim_score = handler.calculate_similarity(emb1, emb2)
+            similarity_values[handler.column] = sim_score
+            
+        print(doc_id,
+            'source_text',
+            'target_summary',
+            similarity_values.get('rubert-tiny2'),
+            similarity_values.get('labse-ru-sts'),
+            similarity_values.get('uaritm'),
+            similarity_values.get('DeepPavlov-rubert'))
+        
+        # загружаем данные в БД
+        with db_handler.connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO similarity_metrics
+                    (doc_id, text_source, text_target, metric_rubert_tiny2, metric_labse_ru_sts, metric_multilingual, metric_rubert_base)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                doc_id,
+                'source_text',
+                'target_summary',
+                float(similarity_values.get('rubert-tiny2')),
+                float(similarity_values.get('labse-ru-sts')),
+                float(similarity_values.get('uaritm')),
+                float(similarity_values.get('DeepPavlov-rubert'))
+            ))
+            db_handler.connection.commit()
 
 def run_real_sim():
     db_handler = DatabaseHandler(host='docker')
-    dataset = db_handler.get_db_table_text_real_summaries()
+    dataset = db_handler.get_db_table_text_summaries_from_target()
+    columns = db_handler.get_column_name()
     handlers = [BaseSimilarity(i) for i in config.SIMILARITY_MODELS]
 
-    for i, row in enumerate(dataset):
+    for row in dataset:
         doc_id = row[0]
         text_1 = row[1]
+        text_2 = row[2]
 
         # проходим по всем текстам для сравнения
-        for text_2 in row[3:]:
-            if not text_2:
+        for i, text_3 in enumerate(row[3:]):
+            if not text_3:
                 continue
 
             similarity_values = {}
             for handler in handlers:
                 emb1 = handler.get_full_text_embeddings(text_1)
-                emb2 = handler.get_full_text_embeddings(text_2)
+                emb2 = handler.get_full_text_embeddings(text_3)
                 sim_score = handler.calculate_similarity(emb1, emb2)
                 similarity_values[handler.column] = sim_score
 
+            print(doc_id,
+                    'target_summary',
+                    columns[i+3],
+                    similarity_values.get('rubert-tiny2'),
+                    similarity_values.get('labse-ru-sts'),
+                    similarity_values.get('uaritm'),
+                    similarity_values.get('DeepPavlov-rubert'))
             # загружаем данные в БД
             with db_handler.connection.cursor() as cursor:
                 cursor.execute('''
                     INSERT INTO similarity_metrics
-                    (doc_id, text_source, text_target, cointegrated_rubert_tiny2, sergeyzh_labse_ru_sts, uaritm_multilingual_en_uk_pl_ru, deeppavlov_rubert_base_cased_sentence)
+                        (doc_id, text_source, text_target, metric_rubert_tiny2, metric_labse_ru_sts, metric_multilingual, metric_rubert_base)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ''', (
                     doc_id,
-                    text_1,
-                    text_2,
-                    similarity_values.get('rubert-tiny2'),
-                    similarity_values.get('labse-ru-sts'),
-                    similarity_values.get('uaritm'),
-                    similarity_values.get('DeepPavlov-rubert')
+                    'target_summary',
+                    columns[i+3],
+                    float(similarity_values.get('rubert-tiny2')),
+                    float(similarity_values.get('labse-ru-sts')),
+                    float(similarity_values.get('uaritm')),
+                    float(similarity_values.get('DeepPavlov-rubert'))
                 ))
                 db_handler.connection.commit()
 
-            # print(f'Inserted similarities for doc_id={doc_id}, text_2 snippet="{text_2[:30]}..."')
-
+                
 
 
 def run():
@@ -109,4 +158,5 @@ def run():
 
 
 if __name__ == "__main__":
-    run_real_sim()
+    # run_real_sim()
+    run_source_target()

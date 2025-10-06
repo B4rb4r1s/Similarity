@@ -40,31 +40,35 @@ class DatabaseHandler:
 
 
     # lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
-    def get_db_table_text_summaries(self):
+    def get_db_table_text_summaries_from_source(self):
         with self.connection.cursor() as cursor:
             cursor.execute(f'''
-                SELECT elibrary_dataset.id, text_dedoc, similarity_metrics.doc_id, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+                SELECT elibrary_dataset.id, source_text, target_summary, summary_lingvo, summary_mt5, summary_mbart, summary_rut5, summary_t5
                 FROM elibrary_dataset
-                LEFT JOIN similarity_metrics
-                    ON similarity_metrics.doc_id = elibrary_dataset.id
                 ORDER BY elibrary_dataset.id DESC
-                LIMIT 480;
             ''')
             dataset = cursor.fetchall()
         return dataset
     # lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
-    def get_db_table_text_real_summaries(self):
+    def get_db_table_text_summaries_from_target(self):
         with self.connection.cursor() as cursor:
             cursor.execute(f'''
-                SELECT elibrary_dataset.id, target_summary, similarity_metrics.doc_id, text_dedoc, lingvo_summary, mt5_summary, mbart_summary, rut5_summary, t5_summary
+                SELECT elibrary_dataset.id, target_summary, source_text, summary_lingvo, summary_mt5, summary_mbart, summary_rut5, summary_t5
                 FROM elibrary_dataset
-                LEFT JOIN similarity_metrics
-                    ON similarity_metrics.doc_id = elibrary_dataset.id
                 ORDER BY elibrary_dataset.id DESC
-                LIMIT 480;
             ''')
             dataset = cursor.fetchall()
         return dataset
+    def get_column_name(self):
+        with self.connection.cursor() as cursor:
+            cursor.execute(f'''
+                SELECT elibrary_dataset.id, target_summary, source_text, summary_lingvo, summary_mt5, summary_mbart, summary_rut5, summary_t5
+                FROM elibrary_dataset
+                LIMIT 0
+            ''')
+            columns = [desc[0] for desc in cursor.description]
+        return columns
+
 
     def upload_data(self, table, column, doc_id, volume):
         with self.connection.cursor() as cursor:
